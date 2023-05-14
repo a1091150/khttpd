@@ -32,6 +32,8 @@
 
 #define RECV_BUFFER_SIZE 4096
 
+extern struct workqueue_struct *khttpd_wq;
+
 struct http_request {
     struct socket *socket;
     enum http_method method;
