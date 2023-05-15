@@ -161,7 +161,15 @@ static int __init khttpd_init(void)
         return err;
     }
     param.listen_socket = listen_socket;
+
+    khttpd_wq = alloc_workqueue(MODULE_NAME, WQ_UNBOUND, 0);
+    if (!khttpd_wq) {
+        pr_err("can't alloc work_queue");
+        close_listen_socket(listen_socket);
+        return ENOMEM;
+    }
     http_server = kthread_run(http_server_daemon, &param, KBUILD_MODNAME);
+
     if (IS_ERR(http_server)) {
         pr_err("can't start http server daemon\n");
         close_listen_socket(listen_socket);
@@ -175,6 +183,7 @@ static void __exit khttpd_exit(void)
     send_sig(SIGTERM, http_server, 1);
     kthread_stop(http_server);
     close_listen_socket(listen_socket);
+    destroy_workqueue(khttpd_wq);
     pr_info("module unloaded\n");
 }
 
